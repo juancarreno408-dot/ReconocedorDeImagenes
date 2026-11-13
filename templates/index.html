@@ -4,24 +4,160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reconocedor MNIST</title>
+    <!-- Agregamos una fuente moderna de Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --primary-hover: #4338CA;
+            --bg-color: #F3F4F6;
+            --text-color: #1F2937;
+            --border-color: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+
+        p {
+            font-size: 0.95rem;
+            color: #6B7280;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Estilos para ocultar el input real y usar un diseño personalizado */
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #F9FAFB;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: #374151;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .file-upload-label:hover {
+            background-color: #F3F4F6;
+            border-color: #D1D5DB;
+        }
+
+        .preview-caja {
+            border: 2px dashed #D1D5DB;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            background-color: #F9FAFB;
+            overflow: hidden;
+        }
+
+        #preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 0.5rem;
+            object-fit: contain;
+        }
+
+        #textoPreview {
+            color: #9CA3AF;
+            font-size: 0.9rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:disabled {
+            background-color: #9CA3AF;
+            cursor: not-allowed;
+        }
+
+        #resultado {
+            margin-top: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            min-height: 40px;
+        }
+
+        .success { color: #059669; }
+        .error { color: #DC2626; }
+    </style>
 </head>
 <body>
 
-    <h1>Reconocedor de Números (IA)</h1>
-    <p>Sube una imagen de un número escrito a mano (0-9).</p>
+    <div class="container">
+        <h1>Reconocedor de Números</h1>
+        <p>Sube una imagen de un número escrito a mano (0-9).</p>
 
-    <form id="formulario">
-        <input type="file" id="inputImagen" accept="image/*" required>
-        
-        <div class="preview-caja">
-            <img id="preview" style="display: none;" alt="Previsualización">
-            <span id="textoPreview">Vista previa de la imagen</span>
-        </div>
+        <form id="formulario">
+            <!-- Botón de subida de archivo estilizado -->
+            <label for="inputImagen" class="file-upload-label">
+                📁 Seleccionar imagen...
+            </label>
+            <input type="file" id="inputImagen" accept="image/*" required>
+            
+            <div class="preview-caja">
+                <img id="preview" style="display: none;" alt="Previsualización">
+                <span id="textoPreview">Vista previa de la imagen</span>
+            </div>
 
-        <button type="submit" id="btnEnviar">Analizar Imagen</button>
-    </form>
+            <button type="submit" id="btnEnviar">Analizar Imagen</button>
+        </form>
 
-    <div id="resultado"></div>
+        <div id="resultado"></div>
+    </div>
 
     <script>
         const inputImagen = document.getElementById('inputImagen');
@@ -30,19 +166,25 @@
         const formulario = document.getElementById('formulario');
         const btnEnviar = document.getElementById('btnEnviar');
         const divResultado = document.getElementById('resultado');
+        const fileLabel = document.querySelector('.file-upload-label');
 
         // Mostrar la imagen apenas el usuario la selecciona
         inputImagen.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
+                // Cambiar el texto del botón al nombre del archivo
+                fileLabel.textContent = '✔️ ' + file.name;
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     preview.src = e.target.result;
                     preview.style.display = 'block';
                     textoPreview.style.display = 'none';
-                    divResultado.innerHTML = ''; // Limpiar resultados anteriores
+                    divResultado.innerHTML = ''; 
                 }
                 reader.readAsDataURL(file);
+            } else {
+                fileLabel.textContent = '📁 Seleccionar imagen...';
             }
         });
 
@@ -53,14 +195,13 @@
             if (!file) return;
 
             btnEnviar.disabled = true;
-            btnEnviar.textContent = 'Procesando...';
+            btnEnviar.textContent = 'Procesando... ⏳';
             divResultado.innerHTML = '';
 
             const formData = new FormData();
             formData.append('imagen', file);
 
             try {
-                // Al estar en el mismo servidor, usamos ruta relativa
                 const response = await fetch('/predecir', {
                     method: 'POST',
                     body: formData
@@ -69,12 +210,12 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    divResultado.innerHTML = `¡Es un ${data.numero_predicho}! <br><small style="color: gray">Confianza: ${data.confianza}%</small>`;
+                    divResultado.innerHTML = `<span class="success">¡Es un ${data.numero_predicho}!</span> <br><small style="color: #6B7280; margin-top: 5px; display: inline-block;">Nivel de confianza: ${data.confianza}%</small>`;
                 } else {
-                    divResultado.innerHTML = `<span style="color: red">Error: ${data.error}</span>`;
+                    divResultado.innerHTML = `<span class="error">Error: ${data.error}</span>`;
                 }
             } catch (error) {
-                divResultado.innerHTML = `<span style="color: red">Error de conexión con el servidor.</span>`;
+                divResultado.innerHTML = `<span class="error">Error de conexión con el servidor.</span>`;
             } finally {
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Analizar Imagen';
